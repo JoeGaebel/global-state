@@ -1,20 +1,27 @@
 import {Dispatch, SetStateAction, useState} from "react";
 import Status from "./Status";
 import {act, render} from "@testing-library/react";
+import {AppState, AppStateContext, useInitialAppState} from "./useAppState";
+import Counter from "./Counter";
 
 describe('Status', () => {
-    let setCount: Dispatch<SetStateAction<number>>
-    let count: number
+    let state: AppState
+    let setState: Dispatch<SetStateAction<AppState>>
 
     function TestContainer(): JSX.Element {
-        [count, setCount] = useState(0)
+        [state, setState] = useInitialAppState()
 
-        return <Status count={count}/>
+        return <AppStateContext.Provider value={[state, setState]}>
+            <Status/>
+        </AppStateContext.Provider>
     }
 
     function bumpTheCount() {
         act(() => {
-            setCount(prevState => prevState + 1)
+            setState(prevState => ({
+                ...prevState,
+                count: prevState.count + 1
+            }))
         })
     }
 

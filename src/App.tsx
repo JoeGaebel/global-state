@@ -1,19 +1,18 @@
-import React, {useState} from 'react';
+import React from 'react';
 import './App.css';
 import Counter from "./Counter";
 import Status from "./Status";
+import {AppStateContext, useInitialAppState} from "./useAppState";
 
 function App() {
-  const [count, setCount] = useState(0)
-
-  function increment() {
-    setCount(prevCount => prevCount + 1)
-  }
+  const [state, setState] = useInitialAppState()
 
   return (
     <div className="App">
-      <Counter count={count} incrementer={increment}/>
-      <Status count={count}/>
+        <AppStateContext.Provider value={[state, setState]}>
+            <Counter/>
+            <Status/>
+        </AppStateContext.Provider>
     </div>
   );
 }
