@@ -1,46 +1,49 @@
-# Getting Started with Create React App
+# Global State w/ React Hooks!
+Ever had a bunch of deeply nested components and passed a bunch of state down the DOM tree?
+Sucks, right?
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Redux is a great way to manage state, but I was interested in producing a Pure React solution to Global State access.
 
-## Available Scripts
+# useState, useContext
+By utilizing `useState` and `useContext` into two custom hooks, `useInitialAppState` and `useAppState`, one can initialize the AppState, and access it from anywhere in the DOM tree, without passing wires around.
 
-In the project directory, you can run:
+# How to use this repo
+1. Check out the second commit - "Create the widgets with App passing props". Notice that state is being initialized within the top level App, and passed through props to components.
+2. Check out the third commit - "Use global state". Notice that state is being initialized within the top level App, and then a Provider wraps the rest of the components. From then on, any component can call `useAppState` to get a reference to the state and a setter.
 
-### `yarn start`
+# Downsides
+1. You're giving components a lot of power, and in this implementation there aren't a lot of guards for this. This can be fixed up by following the reducer pattern, where you expose the state, and a dispatcher. That way your reducer is responsible for managing state, instead of the component.
+2. When setting state in this way, you'll want to be careful that you're not using an old reference to state when updating it dynamically, ie.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```javascript
+const [state, setState] = useAppState()
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+async function doAsyncThing() {
+  const result = await asyncThing()
+  setState({
+    ...state,
+    result
+   })
+}
+ 
+ useEffect(() => {
+   doAsyncThing()
+ }, [])
+ 
+ return <div>hello</div>
+}
+```
 
-### `yarn test`
+Done in this way, the state reference may have changed in the mean time.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `yarn build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+Instead, do it like this:
+```javascript
+async function doAsyncThing() {
+  const result = await asyncThing()
+  setState(prevState => {
+    ...prevState,
+    result
+   })
+ }
+```
+That way you're referencing the up to date reference that setState provides through it's call argument.
